@@ -1,0 +1,61 @@
+name: "Check semantic-pull-request"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  fix-revert-title:
+    if: ${{ startsWith(github.event.pull_request.title, 'Revert') }}
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    env:
+      PR_TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - name: Fix Revert PR Title
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = process.env.PR_TITLE;
+            const newTitle = title.replace(/^Revert/, 'revert:');
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              title: newTitle
+            });
+            
+            console.log(`Updated PR title from "${title}" to "${newTitle}"`);
+  main:
+    needs: fix-revert-title
+    permissions:
+      pull-requests: read
+      statuses: write
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          validateSingleCommit: false
+          types: |
+            feat
+            fix
+            improvement
+            chore
+            docs
+            perf
+            refactor
+            test
+            ci
+            revert
