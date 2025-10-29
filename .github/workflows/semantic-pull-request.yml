@@ -37,6 +37,7 @@ jobs:
             console.log(`Updated PR title from "${title}" to "${newTitle}"`);
   main:
     needs: fix-revert-title
+    if: ${{ !cancelled() }}
     permissions:
       pull-requests: read
       statuses: write
