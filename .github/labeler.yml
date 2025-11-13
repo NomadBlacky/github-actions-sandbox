@@ -1,3 +1,3 @@
 module:test:
-  - changed_files:
-      - 'test/**'
+  - changed-files:
+      - any-glob-to-any-file: test/**
